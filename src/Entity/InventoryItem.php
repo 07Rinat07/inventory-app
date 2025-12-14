@@ -14,11 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
         new ORM\UniqueConstraint(
             name: 'uniq_inventory_custom_id',
             columns: ['inventory_id', 'custom_id']
-        )
-    ],
-    indexes: [
-        new ORM\Index(name: 'idx_item_inventory', columns: ['inventory_id']),
-        new ORM\Index(name: 'idx_item_created_by', columns: ['created_by']),
+        ),
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
@@ -30,28 +26,26 @@ class InventoryItem
     private ?int $id = null;
 
     /**
-     * Инвентарь, к которому принадлежит item
+     * Owning side связи.
+     * ОБЯЗАТЕЛЬНО inversedBy="items"
      */
-    #[ORM\ManyToOne(targetEntity: Inventory::class)]
+    #[ORM\ManyToOne(targetEntity: Inventory::class, inversedBy: 'items')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Inventory $inventory;
 
-    /**
-     * Кастомный ID (человеко-читаемый)
-     * Уникален в пределах одного инвентаря
-     */
-    #[ORM\Column(type: 'string', length: 255)]
-    private string $customId;
-
-    /**
-     * Пользователь, создавший item
-     */
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
     private User $createdBy;
 
     /**
-     * Версия для optimistic locking
+     * Редактируемый custom ID
+     * Уникален внутри inventory (через составной индекс)
+     */
+    #[ORM\Column(type: 'string', length: 255)]
+    private string $customId;
+
+    /**
+     * Optimistic locking
      */
     #[ORM\Version]
     #[ORM\Column(type: 'integer')]
@@ -65,12 +59,12 @@ class InventoryItem
 
     public function __construct(
         Inventory $inventory,
-        string $customId,
-        User $createdBy
+        User $createdBy,
+        string $customId
     ) {
         $this->inventory = $inventory;
-        $this->customId = $customId;
         $this->createdBy = $createdBy;
+        $this->customId = $customId;
 
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
@@ -99,13 +93,8 @@ class InventoryItem
         return $this->customId;
     }
 
-    public function getCreatedBy(): User
+    public function setCustomId(string $customId): void
     {
-        return $this->createdBy;
-    }
-
-    public function getVersion(): int
-    {
-        return $this->version;
+        $this->customId = $customId;
     }
 }
