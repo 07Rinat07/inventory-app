@@ -20,100 +20,55 @@ use Doctrine\Common\Collections\Collection;
 #[ORM\HasLifecycleCallbacks]
 class Inventory
 {
-    /**
-     * Технический первичный ключ.
-     * Не используется в UI.
-     */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * Владелец инвентаря.
-     * Используется для ACL и проверок доступа.
-     */
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private User $owner;
 
-    /**
-     * Название инвентаря.
-     * Отображается в списках и на главной.
-     */
     #[ORM\Column(type: 'string', length: 255)]
     private string $title;
 
-    /**
-     * Описание инвентаря (Markdown).
-     * Не используется в поиске напрямую.
-     */
     #[ORM\Column(type: 'text')]
     private string $description;
 
-    /**
-     * Категория инвентаря.
-     * Список категорий управляется напрямую через БД.
-     */
     #[ORM\Column(type: 'string', length: 100)]
     private string $category;
 
-    /**
-     * URL изображения (обложки).
-     * ❗ Файл НЕ хранится в БД и НЕ загружается на сервер.
-     */
     #[ORM\Column(type: 'string', length: 500, nullable: true)]
     private ?string $imageUrl = null;
 
-    /**
-     * Флаг публичности.
-     * Если true — все авторизованные пользователи имеют write-доступ к items.
-     */
     #[ORM\Column(type: 'boolean')]
     private bool $isPublic = false;
 
-    /**
-     * Версия для optimistic locking.
-     * Используется при редактировании инвентаря.
-     */
     #[ORM\Version]
     #[ORM\Column(type: 'integer')]
     private int $version = 1;
 
-    /**
-     * Дата создания.
-     */
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
-    /**
-     * Дата последнего обновления.
-     */
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
-    /**
-     * Items инвентаря.
-     * Lazy loading, без каскадного удаления значений.
-     */
     #[ORM\OneToMany(mappedBy: 'inventory', targetEntity: InventoryItem::class)]
     private Collection $items;
 
-    /**
-     * Кастомные поля инвентаря.
-     */
-    #[ORM\OneToMany(mappedBy: 'inventory', targetEntity: InventoryField::class)]
-    private Collection $fields;
-
-    public function __construct(User $owner, string $title, string $description, string $category)
-    {
+    public function __construct(
+        User $owner,
+        string $title,
+        string $description,
+        string $category
+    ) {
         $this->owner = $owner;
         $this->title = $title;
         $this->description = $description;
         $this->category = $category;
 
         $this->items = new ArrayCollection();
-        $this->fields = new ArrayCollection();
 
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
@@ -125,9 +80,7 @@ class Inventory
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    // ========================
-    // Getters (минимально нужные)
-    // ========================
+    // ===== Getters =====
 
     public function getId(): ?int
     {
@@ -157,10 +110,5 @@ class Inventory
     public function getItems(): Collection
     {
         return $this->items;
-    }
-
-    public function getFields(): Collection
-    {
-        return $this->fields;
     }
 }
