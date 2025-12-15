@@ -6,94 +6,76 @@ namespace App\Service\InventoryItem;
 
 use App\Entity\Inventory;
 use App\Entity\InventoryItem;
+use App\Entity\InventoryItemFieldValue;
 use App\Entity\User;
+use App\Repository\InventoryFieldRepository;
 use App\Service\CustomId\CustomIdGenerator;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Единственная точка создания InventoryItem.
- *
- * Почему отдельный сервис:
- * - контроллер должен быть тонким
- * - Entity не должна знать про транзакции/ретраи/уникальные индексы
- * - здесь удобно централизовать бизнес-правила создания item
- *
- * Что гарантируем:
- * - создание происходит в транзакции
- * - custom_id уникален на уровне БД (UNIQUE(inventory_id, custom_id))
- * - при конфликте custom_id мы делаем retry ограниченное число раз
- * - если пользователь ввёл custom_id вручную и он конфликтует — НЕ "чинить" автоматически,
- *   а вернуть понятную доменную ошибку (как требует ТЗ)
+ * Единственная точка создания InventoryItem и его значений.
  */
 final class InventoryItemCreator
 {
-    /**
-     * Сколько раз пытаемся сгенерировать новый custom_id при конфликте.
-     * Для random/sequence/GUID конфликт маловероятен, но при параллельности возможен.
-     */
     private const MAX_GENERATION_RETRIES = 5;
 
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly CustomIdGenerator $customIdGenerator,
+        private readonly InventoryFieldRepository $fieldRepository,
     ) {
     }
 
     /**
-     * Создаёт новый item.
-     *
-     * @param Inventory $inventory      Инвентарь, куда добавляем item
-     * @param User      $actor          Текущий пользователь (создатель item)
-     * @param string|null $manualCustomId Если пользователь вручную ввёл custom_id (редактируемость)
-     *
-     * @throws \DomainException если manualCustomId конфликтует или если не удалось сгенерировать уникальный ID
+     * @param array<int, mixed> $fieldValues fieldId => value
      */
     public function create(
         Inventory $inventory,
         User $actor,
+        array $fieldValues,
         ?string $manualCustomId = null
     ): InventoryItem {
-        // 1) Если custom_id ввёл пользователь — пробуем создать ровно с ним.
-        //    ВАЖНО: при конфликте НЕ делаем автоподмену, по ТЗ пользователь должен править вручную.
         if ($manualCustomId !== null && trim($manualCustomId) !== '') {
-            return $this->createWithCustomIdOnce($inventory, $actor, trim($manualCustomId));
+            return $this->createOnce(
+                $inventory,
+                $actor,
+                trim($manualCustomId),
+                $fieldValues
+            );
         }
 
-        // 2) Если custom_id не задан — генерируем системой, но с ограниченным retry.
         $lastError = null;
 
-        for ($attempt = 1; $attempt <= self::MAX_GENERATION_RETRIES; $attempt++) {
-            $generated = $this->customIdGenerator->generateForInventory($inventory);
+        for ($i = 1; $i <= self::MAX_GENERATION_RETRIES; $i++) {
+            $customId = $this->customIdGenerator->generateForInventory($inventory);
 
             try {
-                return $this->createWithCustomIdOnce($inventory, $actor, $generated);
+                return $this->createOnce(
+                    $inventory,
+                    $actor,
+                    $customId,
+                    $fieldValues
+                );
             } catch (\DomainException $e) {
-                // Здесь DomainException означает конфликт custom_id на уровне БД.
-                // Для автогенерации это нормально: пробуем ещё раз с новым ID.
                 $lastError = $e;
             }
         }
 
-        // Если даже после retry не получилось — это уже сигнал, что что-то не так с форматом/генератором/параллельностью.
         throw new \DomainException(
-            'Could not generate a unique Custom ID. Please try again or enter Custom ID manually.',
+            'Unable to generate unique Custom ID.',
             previous: $lastError
         );
     }
 
     /**
-     * Создание item в транзакции с одним конкретным custom_id.
-     *
-     * Важно:
-     * - уникальность обеспечивает БД (UNIQUE(inventory_id, custom_id))
-     * - при конфликте ловим UniqueConstraintViolationException
-     * - обязательно rollback перед повтором/выходом
+     * @param array<int, mixed> $fieldValues
      */
-    private function createWithCustomIdOnce(
+    private function createOnce(
         Inventory $inventory,
         User $actor,
-        string $customId
+        string $customId,
+        array $fieldValues
     ): InventoryItem {
         $this->em->beginTransaction();
 
@@ -106,33 +88,70 @@ final class InventoryItemCreator
 
             $this->em->persist($item);
 
-            // flush нужен внутри транзакции, чтобы:
-            // - БД проверила уникальные ограничения
-            // - мы поймали исключение здесь же
-            $this->em->flush();
+            // Загружаем все поля инвентаря ОДНИМ запросом
+            $fields = $this->fieldRepository->findBy([
+                'inventory' => $inventory,
+            ]);
 
+            $fieldsById = [];
+            foreach ($fields as $field) {
+                $fieldsById[$field->getId()] = $field;
+            }
+
+            foreach ($fieldValues as $fieldId => $value) {
+                if (!isset($fieldsById[$fieldId])) {
+                    continue; // поле удалено или не относится к inventory
+                }
+
+                $field = $fieldsById[$fieldId];
+
+                if (!$this->isValueCompatible($field->getType(), $value)) {
+                    throw new \DomainException(
+                        sprintf('Invalid value for field "%s".', $field->getTitle())
+                    );
+                }
+
+                $fieldValue = new InventoryItemFieldValue(
+                    item: $item,
+                    field: $field,
+                    value: $value === null ? null : (string) $value
+                );
+
+                $this->em->persist($fieldValue);
+            }
+
+            $this->em->flush();
             $this->em->commit();
 
             return $item;
         } catch (UniqueConstraintViolationException $e) {
             $this->safeRollback();
-
-            /**
-             * ВАЖНО: Не "лечим" данные автоматически.
-             * - Если custom_id ручной — пользователь должен исправить сам (требование ТЗ)
-             * - Если custom_id генерировался системой — верхний уровень сделает retry
-             */
-            throw new \DomainException('Custom ID already exists in this inventory.', previous: $e);
+            throw new \DomainException('Custom ID already exists.', previous: $e);
         } catch (\Throwable $e) {
             $this->safeRollback();
-            throw $e; // пробрасываем дальше — это реальная ошибка
+            throw $e;
         }
     }
 
-    /**
-     * Rollback иногда может бросить исключение, если транзакция уже закрыта/в ошибочном состоянии.
-     * Мы не хотим скрыть исходную ошибку — поэтому rollback делаем "безопасно".
-     */
+    private function isValueCompatible(string $type, mixed $value): bool
+    {
+        return match ($type) {
+            'single_text', 'multi_text' =>
+                is_string($value) || $value === null,
+
+            'number' =>
+                is_numeric($value) || $value === null,
+
+            'boolean' =>
+                is_bool($value) || $value === null,
+
+            'document', 'image' =>
+                is_string($value) || $value === null,
+
+            default => false,
+        };
+    }
+
     private function safeRollback(): void
     {
         try {
@@ -140,7 +159,6 @@ final class InventoryItemCreator
                 $this->em->rollback();
             }
         } catch (\Throwable) {
-            // намеренно игнорируем, чтобы не затереть первопричину
         }
     }
 }
