@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
+use App\Entity\InventoryField;
+use App\Entity\InventoryItem;
 use App\Entity\InventoryItemFieldValue;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -9,35 +13,24 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<InventoryItemFieldValue>
  */
-class InventoryItemFieldValueRepository extends ServiceEntityRepository
+final class InventoryItemFieldValueRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, InventoryItemFieldValue::class);
     }
 
-    //    /**
-    //     * @return InventoryItemFieldValue[] Returns an array of InventoryItemFieldValue objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('i')
-    //            ->andWhere('i.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('i.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?InventoryItemFieldValue
-    //    {
-    //        return $this->createQueryBuilder('i')
-    //            ->andWhere('i.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * Возвращает значение кастомного поля для item
+     * Используется автосейвом
+     */
+    public function findOneByItemAndField(
+        InventoryItem $item,
+        InventoryField $field
+    ): ?InventoryItemFieldValue {
+        return $this->findOneBy([
+            'item' => $item,
+            'field' => $field,
+        ]);
+    }
 }
