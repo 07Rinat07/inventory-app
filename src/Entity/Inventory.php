@@ -57,6 +57,12 @@ class Inventory
     #[ORM\OneToMany(mappedBy: 'inventory', targetEntity: InventoryItem::class)]
     private Collection $items;
 
+    /**
+     * @var Collection<int, DiscussionPost>
+     */
+    #[ORM\OneToMany(targetEntity: DiscussionPost::class, mappedBy: 'inventory', orphanRemoval: true)]
+    private Collection $discussionPosts;
+
     public function __construct(
         User $owner,
         string $title,
@@ -72,6 +78,7 @@ class Inventory
 
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+        $this->discussionPosts = new ArrayCollection();
     }
 
     #[ORM\PreUpdate]
@@ -110,5 +117,35 @@ class Inventory
     public function getItems(): Collection
     {
         return $this->items;
+    }
+
+    /**
+     * @return Collection<int, DiscussionPost>
+     */
+    public function getDiscussionPosts(): Collection
+    {
+        return $this->discussionPosts;
+    }
+
+    public function addDiscussionPost(DiscussionPost $discussionPost): static
+    {
+        if (!$this->discussionPosts->contains($discussionPost)) {
+            $this->discussionPosts->add($discussionPost);
+            $discussionPost->setInventory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDiscussionPost(DiscussionPost $discussionPost): static
+    {
+        if ($this->discussionPosts->removeElement($discussionPost)) {
+            // set the owning side to null (unless already changed)
+            if ($discussionPost->getInventory() === $this) {
+                $discussionPost->setInventory(null);
+            }
+        }
+
+        return $this;
     }
 }
