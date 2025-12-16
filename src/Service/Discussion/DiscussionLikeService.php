@@ -13,30 +13,38 @@ use Doctrine\ORM\EntityManagerInterface;
 final class DiscussionLikeService
 {
     public function __construct(
-        private EntityManagerInterface $em,
         private DiscussionPostLikeRepository $likeRepository,
+        private EntityManagerInterface $em
     ) {
     }
 
     /**
      * Toggle like:
      * - если лайк есть → удалить
-     * - если лайка нет → создать
-     *
-     * Возвращает текущее состояние (liked / unliked)
+     * - если нет → создать
      */
-    public function toggle(DiscussionPost $post, User $user): bool
+    public function toggle(User $user, DiscussionPost $post): array
     {
-        return $this->em->wrapInTransaction(function () use ($post, $user): bool {
-            if ($this->likeRepository->existsForUser($post, $user)) {
-                $this->likeRepository->removeLike($post, $user);
-                return false; // лайк убран
-            }
+        $existingLike = $this->likeRepository->findOneBy([
+            'user' => $user,
+            'post' => $post,
+        ]);
 
-            $like = new DiscussionPostLike($post, $user);
-            $this->em->persist($like);
+        if ($existingLike instanceof DiscussionPostLike) {
+            $this->em->remove($existingLike);
+            $this->em->flush();
 
-            return true; // лайк поставлен
-        });
+            return [
+                'liked' => false,
+            ];
+        }
+
+        $like = new DiscussionPostLike($post, $user);
+        $this->em->persist($like);
+        $this->em->flush();
+
+        return [
+            'liked' => true,
+        ];
     }
 }

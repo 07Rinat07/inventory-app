@@ -17,31 +17,26 @@ final class DiscussionPostLikeRepository extends ServiceEntityRepository
         parent::__construct($registry, DiscussionPostLike::class);
     }
 
-    public function existsForUser(DiscussionPost $post, User $user): bool
-    {
-        return (bool) $this->createQueryBuilder('l')
-            ->select('1')
+    public function findOneByUserAndPost(
+        User $user,
+        DiscussionPost $post
+    ): ?DiscussionPostLike {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.likedBy = :user')
             ->andWhere('l.post = :post')
-            ->andWhere('l.user = :user')
-            ->setParameters([
-                'post' => $post,
-                'user' => $user,
-            ])
+            ->setParameter('user', $user)
+            ->setParameter('post', $post)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
-    public function removeLike(DiscussionPost $post, User $user): void
+    public function countByPost(DiscussionPost $post): int
     {
-        $this->createQueryBuilder('l')
-            ->delete()
+        return (int) $this->createQueryBuilder('l')
+            ->select('COUNT(l.id)')
             ->andWhere('l.post = :post')
-            ->andWhere('l.user = :user')
-            ->setParameters([
-                'post' => $post,
-                'user' => $user,
-            ])
+            ->setParameter('post', $post)
             ->getQuery()
-            ->execute();
+            ->getSingleScalarResult();
     }
 }
