@@ -8,68 +8,38 @@ use App\Repository\InventoryFieldRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InventoryFieldRepository::class)]
-#[ORM\Table(
-    name: 'inventory_fields',
-    indexes: [
-        new ORM\Index(name: 'idx_field_inventory', columns: ['inventory_id']),
-        new ORM\Index(name: 'idx_field_type', columns: ['type']),
-    ]
-)]
+#[ORM\Table(name: 'inventory_fields')]
 class InventoryField
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column]
     private ?int $id = null;
 
-    /**
-     * Инвентарь, к которому относится поле
-     */
-    #[ORM\ManyToOne(targetEntity: Inventory::class)]
+    #[ORM\ManyToOne(inversedBy: 'fields')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Inventory $inventory;
 
-    /**
-     * Тип поля (ограниченный набор)
-     */
-    #[ORM\Column(type: 'string', length: 50)]
+    #[ORM\Column(length: 50)]
     private string $type;
 
-    /**
-     * Заголовок поля (можно менять)
-     */
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(length: 255)]
     private string $title;
 
-    /**
-     * Описание поля (tooltip / hint)
-     */
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $description = null;
-
-    /**
-     * Показывать ли поле в таблице items
-     */
-    #[ORM\Column(type: 'boolean')]
-    private bool $showInTable = false;
-
-    /**
-     * Позиция поля (для drag-and-drop)
-     */
-    #[ORM\Column(type: 'integer')]
-    private int $position = 0;
+    #[ORM\Column]
+    private int $position;
 
     public function __construct(
         Inventory $inventory,
         string $type,
-        string $title
+        string $title,
+        int $position
     ) {
         $this->inventory = $inventory;
         $this->type = $type;
         $this->title = $title;
+        $this->position = $position;
     }
-
-    // ===== Getters =====
 
     public function getId(): ?int
     {
@@ -89,11 +59,6 @@ class InventoryField
     public function getTitle(): string
     {
         return $this->title;
-    }
-
-    public function isShowInTable(): bool
-    {
-        return $this->showInTable;
     }
 
     public function getPosition(): int

@@ -1,15 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-</head>
-<body>
-<h1>Login page</h1>
+{% extends 'base.html.twig' %}
 
-<p>
-    This is a placeholder login page.<br>
-    Authentication UI is not implemented in this course project.
-</p>
-</body>
-</html>
+{% block title %}Login{% endblock %}
+
+{% block body %}
+    <h1>Login</h1>
+
+    {% if error %}
+        <div style="color:red;">
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+    {% endif %}
+
+    <form method="post">
+        <div>
+            <label>Email</label><br>
+            <input
+                    type="email"
+                    name="_username"
+                    value="{{ last_username }}"
+                    required
+            >
+        </div>
+
+        <div style="margin-top:10px;">
+            <label>Password</label><br>
+            <input
+                    type="password"
+                    name="_password"
+                    required
+            >
+        </div>
+
+        <div style="margin-top:15px;">
+            <button type="submit">Login</button>
+        </div>
+    </form>
+
+    <p style="margin-top:20px; color:#666;">
+        Demo credentials:<br>
+        admin@test.com / admin123
+    </p>
+{% endblock %}

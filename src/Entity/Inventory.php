@@ -58,9 +58,23 @@ class Inventory
     private Collection $items;
 
     /**
+     * @var Collection<int, InventoryField>
+     */
+    #[ORM\OneToMany(
+        mappedBy: 'inventory',
+        targetEntity: InventoryField::class,
+        orphanRemoval: true
+    )]
+    private Collection $fields;
+
+    /**
      * @var Collection<int, DiscussionPost>
      */
-    #[ORM\OneToMany(targetEntity: DiscussionPost::class, mappedBy: 'inventory', orphanRemoval: true)]
+    #[ORM\OneToMany(
+        mappedBy: 'inventory',
+        targetEntity: DiscussionPost::class,
+        orphanRemoval: true
+    )]
     private Collection $discussionPosts;
 
     public function __construct(
@@ -75,10 +89,11 @@ class Inventory
         $this->category = $category;
 
         $this->items = new ArrayCollection();
+        $this->fields = new ArrayCollection();
+        $this->discussionPosts = new ArrayCollection();
 
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
-        $this->discussionPosts = new ArrayCollection();
     }
 
     #[ORM\PreUpdate]
@@ -87,7 +102,9 @@ class Inventory
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    // ===== Getters =====
+    // ========================
+    // Getters / setters
+    // ========================
 
     public function getId(): ?int
     {
@@ -99,19 +116,30 @@ class Inventory
         return $this->owner;
     }
 
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
+    public function getCategory(): string
+    {
+        return $this->category;
+    }
+
     public function isPublic(): bool
     {
         return $this->isPublic;
     }
 
-    public function setPublic(bool $isPublic): void
+    public function setPublic(bool $public): self
     {
-        $this->isPublic = $isPublic;
-    }
-
-    public function getVersion(): int
-    {
-        return $this->version;
+        $this->isPublic = $public;
+        return $this;
     }
 
     public function getItems(): Collection
@@ -120,32 +148,33 @@ class Inventory
     }
 
     /**
+     * @return Collection<int, InventoryField>
+     */
+    public function getFields(): Collection
+    {
+        return $this->fields;
+    }
+
+    public function addField(InventoryField $field): self
+    {
+        if (!$this->fields->contains($field)) {
+            $this->fields->add($field);
+        }
+
+        return $this;
+    }
+
+    public function removeField(InventoryField $field): self
+    {
+        $this->fields->removeElement($field);
+        return $this;
+    }
+
+    /**
      * @return Collection<int, DiscussionPost>
      */
     public function getDiscussionPosts(): Collection
     {
         return $this->discussionPosts;
-    }
-
-    public function addDiscussionPost(DiscussionPost $discussionPost): static
-    {
-        if (!$this->discussionPosts->contains($discussionPost)) {
-            $this->discussionPosts->add($discussionPost);
-            $discussionPost->setInventory($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDiscussionPost(DiscussionPost $discussionPost): static
-    {
-        if ($this->discussionPosts->removeElement($discussionPost)) {
-            // set the owning side to null (unless already changed)
-            if ($discussionPost->getInventory() === $this) {
-                $discussionPost->setInventory(null);
-            }
-        }
-
-        return $this;
     }
 }

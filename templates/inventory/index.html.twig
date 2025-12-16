@@ -3,34 +3,32 @@
 {% block title %}Inventories{% endblock %}
 
 {% block body %}
-    <h2>Inventories</h2>
+    <h1>Inventories</h1>
 
-    <table>
+    <table border="1" cellpadding="5" cellspacing="0">
         <thead>
         <tr>
             <th>ID</th>
-            <th>Name</th>
-            <th>Public</th>
+            <th>Title</th>
+            <th>Category</th>
             <th>Owner</th>
-            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
         {% for inventory in inventories %}
             <tr>
                 <td>{{ inventory.id }}</td>
-                <td>{{ inventory.name }}</td>
-                <td>{{ inventory.isPublic ? 'Yes' : 'No' }}</td>
-                <td>{{ inventory.owner.email }}</td>
                 <td>
-                    {% if is_granted('INVENTORY_VIEW', inventory) %}
-                        <a class="button" href="{{ path('inventories_show', {id: inventory.id}) }}">View</a>
-                    {% endif %}
+                    <a href="{{ path('inventories_show', {id: inventory.id}) }}">
+                        {{ inventory.title }}
+                    </a>
                 </td>
+                <td>{{ inventory.category }}</td>
+                <td>{{ inventory.owner.email }}</td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">No inventories found</td>
+                <td colspan="4">No inventories found</td>
             </tr>
         {% endfor %}
         </tbody>
