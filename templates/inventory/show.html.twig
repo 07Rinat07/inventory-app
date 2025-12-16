@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inventory {{ inventory.id }}{% endblock %}
+
+{% block body %}
+    <h2>Inventory: {{ inventory.name }}</h2>
+
+    <p>
+        <strong>Public:</strong>
+        {{ inventory.isPublic ? 'Yes' : 'No' }}
+    </p>
+
+    <p>
+        <strong>Owner:</strong>
+        {{ inventory.owner.email }}
+    </p>
+
+    <hr>
+
+    {% if is_granted('INVENTORY_CREATE_ITEM', inventory) %}
+        <p>
+            <a class="button" href="#">Create item</a>
+        </p>
+    {% endif %}
+
+    {% if is_granted('INVENTORY_EDIT', inventory) %}
+        <p>
+            <a class="button" href="#">Edit inventory</a>
+        </p>
+    {% endif %}
+{% endblock %}

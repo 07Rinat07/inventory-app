@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inventories{% endblock %}
+
+{% block body %}
+    <h2>Inventories</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Public</th>
+            <th>Owner</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for inventory in inventories %}
+            <tr>
+                <td>{{ inventory.id }}</td>
+                <td>{{ inventory.name }}</td>
+                <td>{{ inventory.isPublic ? 'Yes' : 'No' }}</td>
+                <td>{{ inventory.owner.email }}</td>
+                <td>
+                    {% if is_granted('INVENTORY_VIEW', inventory) %}
+                        <a class="button" href="{{ path('inventories_show', {id: inventory.id}) }}">View</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">No inventories found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
