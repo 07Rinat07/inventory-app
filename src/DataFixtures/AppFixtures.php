@@ -6,8 +6,8 @@ namespace App\DataFixtures;
 
 use App\Entity\User;
 use App\Entity\Inventory;
-use App\Entity\InventoryItem;
 use App\Entity\InventoryField;
+use App\Entity\InventoryItem;
 use App\Entity\DiscussionPost;
 use App\Entity\DiscussionPostLike;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -22,7 +22,11 @@ final class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        // === ADMIN USER ===
+        /**
+         * ======================
+         * ADMIN USER
+         * ======================
+         */
         $admin = new User();
         $admin->setEmail('admin@test.com');
         $admin->setUsername('admin');
@@ -34,7 +38,27 @@ final class AppFixtures extends Fixture
 
         $manager->persist($admin);
 
-        // === INVENTORY ===
+        /**
+         * ======================
+         * NORMAL USER
+         * ======================
+         */
+        $user = new User();
+        $user->setEmail('user@test.com');
+        $user->setUsername('user');
+        $user->setAdmin(false);
+        $user->setBlocked(false);
+        $user->setPassword(
+            $this->passwordHasher->hashPassword($user, 'user123')
+        );
+
+        $manager->persist($user);
+
+        /**
+         * ======================
+         * INVENTORY
+         * ======================
+         */
         $inventory = new Inventory(
             $admin,
             'Demo Inventory',
@@ -45,36 +69,56 @@ final class AppFixtures extends Fixture
         $inventory->setPublic(true);
         $manager->persist($inventory);
 
-        // === INVENTORY FIELD ===
+        /**
+         * ======================
+         * INVENTORY FIELD
+         * ======================
+         */
         $field = new InventoryField(
             $inventory,
             'TEXT',
             'Serial number',
             1
         );
+
         $manager->persist($field);
 
-        // === INVENTORY ITEM ===
+        /**
+         * ======================
+         * INVENTORY ITEM
+         * ======================
+         */
         $item = new InventoryItem(
             $inventory,
             $admin,
             'ITEM-001'
         );
+
         $manager->persist($item);
 
-        // === DISCUSSION POST ===
+        /**
+         * ======================
+         * DISCUSSION
+         * ======================
+         */
         $post = new DiscussionPost(
             $inventory,
             $admin,
             'First discussion message'
         );
+
         $manager->persist($post);
 
-        // === LIKE ===
+        /**
+         * ======================
+         * LIKE (user likes admin post)
+         * ======================
+         */
         $like = new DiscussionPostLike(
-            $admin,
+            $user,
             $post
         );
+
         $manager->persist($like);
 
         $manager->flush();
