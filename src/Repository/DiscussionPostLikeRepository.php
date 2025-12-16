@@ -17,26 +17,29 @@ final class DiscussionPostLikeRepository extends ServiceEntityRepository
         parent::__construct($registry, DiscussionPostLike::class);
     }
 
-    public function findOneByUserAndPost(
-        User $user,
-        DiscussionPost $post
-    ): ?DiscussionPostLike {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.likedBy = :user')
-            ->andWhere('l.post = :post')
-            ->setParameter('user', $user)
-            ->setParameter('post', $post)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-
-    public function countByPost(DiscussionPost $post): int
+    /**
+     * Возвращает:
+     * - общее количество лайков
+     * - лайкнул ли конкретный пользователь
+     *
+     * ❗ Один запрос, без SELECT *
+     */
+    public function getLikeStats(DiscussionPost $post, ?User $user): array
     {
-        return (int) $this->createQueryBuilder('l')
-            ->select('COUNT(l.id)')
-            ->andWhere('l.post = :post')
+        $qb = $this->createQueryBuilder('l')
+            ->select(
+                'COUNT(l.id) AS likeCount',
+                'SUM(CASE WHEN l.user = :user THEN 1 ELSE 0 END) AS userLiked'
+            )
+            ->where('l.post = :post')
             ->setParameter('post', $post)
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->setParameter('user', $user);
+
+        $result = $qb->getQuery()->getSingleResult();
+
+        return [
+            'count' => (int) $result['likeCount'],
+            'liked' => $user ? ((int) $result['userLiked'] > 0) : false,
+        ];
     }
 }
