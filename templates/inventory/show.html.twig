@@ -11,19 +11,30 @@
 
     <hr>
 
-    <h2>Implemented features</h2>
+    <h2>Access control</h2>
 
+    {% if app.user and app.user == inventory.owner %}
+        <p><strong>You are the owner of this inventory.</strong></p>
+    {% elseif app.user and app.user.isAdmin %}
+        <p><strong>You are an admin.</strong></p>
+    {% else %}
+        <p><strong>You are a regular user.</strong></p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Sections</h2>
     <ul>
-        <li>Items (CRUD, autosave, optimistic locking)</li>
-        <li>Discussion (polling)</li>
+        <li>Items</li>
+        <li>Discussion</li>
         <li>Likes</li>
-        <li>ACL via Voter</li>
+        <li>ACL (via Voters)</li>
     </ul>
 
     <hr>
 
-    <p style="color: #666;">
-        UI is intentionally minimal.<br>
-        Focus is on architecture, business logic and data integrity.
+    <p style="color: gray;">
+        UI is intentionally minimal.
+        Access control is enforced in voters and controllers.
     </p>
 {% endblock %}

@@ -23,9 +23,7 @@ final class AppFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         /**
-         * ======================
-         * ADMIN USER
-         * ======================
+         * ADMIN
          */
         $admin = new User();
         $admin->setEmail('admin@test.com');
@@ -35,13 +33,10 @@ final class AppFixtures extends Fixture
         $admin->setPassword(
             $this->passwordHasher->hashPassword($admin, 'admin123')
         );
-
         $manager->persist($admin);
 
         /**
-         * ======================
-         * NORMAL USER
-         * ======================
+         * USER
          */
         $user = new User();
         $user->setEmail('user@test.com');
@@ -51,13 +46,10 @@ final class AppFixtures extends Fixture
         $user->setPassword(
             $this->passwordHasher->hashPassword($user, 'user123')
         );
-
         $manager->persist($user);
 
         /**
-         * ======================
-         * INVENTORY
-         * ======================
+         * INVENTORY (принадлежит ADMIN)
          */
         $inventory = new Inventory(
             $admin,
@@ -65,14 +57,11 @@ final class AppFixtures extends Fixture
             'Inventory created from fixtures',
             'Demo'
         );
-
         $inventory->setPublic(true);
         $manager->persist($inventory);
 
         /**
-         * ======================
-         * INVENTORY FIELD
-         * ======================
+         * FIELD
          */
         $field = new InventoryField(
             $inventory,
@@ -80,45 +69,35 @@ final class AppFixtures extends Fixture
             'Serial number',
             1
         );
-
         $manager->persist($field);
 
         /**
-         * ======================
-         * INVENTORY ITEM
-         * ======================
+         * ITEM
          */
         $item = new InventoryItem(
             $inventory,
             $admin,
             'ITEM-001'
         );
-
         $manager->persist($item);
 
         /**
-         * ======================
-         * DISCUSSION
-         * ======================
+         * DISCUSSION POST (от USER)
          */
         $post = new DiscussionPost(
             $inventory,
-            $admin,
-            'First discussion message'
+            $user,
+            'Hello! I am a regular user'
         );
-
         $manager->persist($post);
 
         /**
-         * ======================
-         * LIKE (user likes admin post)
-         * ======================
+         * LIKE (USER лайкает пост)
          */
         $like = new DiscussionPostLike(
             $user,
             $post
         );
-
         $manager->persist($like);
 
         $manager->flush();
