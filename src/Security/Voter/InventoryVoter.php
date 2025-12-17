@@ -16,14 +16,16 @@ final class InventoryVoter extends Voter
     public const VIEW = 'INVENTORY_VIEW';
     public const EDIT = 'INVENTORY_EDIT';
     public const MANAGE_ACCESS = 'INVENTORY_MANAGE_ACCESS';
+
     public const CREATE_ITEM = 'INVENTORY_CREATE_ITEM';
-    public const EDIT_ITEM = 'INVENTORY_EDIT_ITEM';
+    public const EDIT_ITEM   = 'INVENTORY_EDIT_ITEM';
+    public const DELETE_ITEM = 'INVENTORY_DELETE_ITEM';
+
     public const DISCUSSION_WRITE = 'DISCUSSION_WRITE';
 
     public function __construct(
         private readonly InventoryAccessRepository $accessRepository
-    ) {
-    }
+    ) {}
 
     protected function supports(string $attribute, mixed $subject): bool
     {
@@ -34,6 +36,7 @@ final class InventoryVoter extends Voter
                 self::MANAGE_ACCESS,
                 self::CREATE_ITEM,
                 self::EDIT_ITEM,
+                self::DELETE_ITEM,
                 self::DISCUSSION_WRITE,
             ], true);
     }
@@ -48,36 +51,31 @@ final class InventoryVoter extends Voter
         $user = $token->getUser();
 
         // ─────────────────────────────
-        // Гость (неавторизован)
+        // Гость
         // ─────────────────────────────
         if (!$user instanceof User) {
             return $attribute === self::VIEW && $inventory->isPublic();
         }
 
         // ─────────────────────────────
-        // Администратор
+        // ADMIN — всё можно
         // ─────────────────────────────
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             return true;
         }
 
         // ─────────────────────────────
-        // Владелец инвентаря
+        // OWNER — всё можно
         // ─────────────────────────────
         if ($inventory->getOwner()->getId() === $user->getId()) {
             return true;
         }
 
         // ─────────────────────────────
-        // Публичный инвентарь
+        // PUBLIC даёт ТОЛЬКО VIEW
         // ─────────────────────────────
-        if ($inventory->isPublic()) {
-            return in_array($attribute, [
-                self::VIEW,
-                self::CREATE_ITEM,
-                self::EDIT_ITEM,
-                self::DISCUSSION_WRITE,
-            ], true);
+        if ($inventory->isPublic() && $attribute === self::VIEW) {
+            return true;
         }
 
         // ─────────────────────────────
@@ -85,7 +83,7 @@ final class InventoryVoter extends Voter
         // ─────────────────────────────
         $access = $this->accessRepository->findOneBy([
             'inventory' => $inventory,
-            'user' => $user,
+            'user'      => $user,
         ]);
 
         if (!$access instanceof InventoryAccess) {
@@ -93,12 +91,13 @@ final class InventoryVoter extends Voter
         }
 
         return match ($access->getRole()) {
-            'OWNER' => true,
+            'READ' => $attribute === self::VIEW,
 
             'WRITE' => in_array($attribute, [
                 self::VIEW,
                 self::CREATE_ITEM,
                 self::EDIT_ITEM,
+                self::DELETE_ITEM,
                 self::DISCUSSION_WRITE,
             ], true),
 

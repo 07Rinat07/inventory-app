@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\DTO\InventoryItemCreateDTO;
 use App\DTO\InventoryItemEditDTO;
-use App\Entity\Inventory;
 use App\Entity\InventoryItem;
 use App\Repository\InventoryItemRepository;
 use App\Repository\InventoryRepository;
@@ -34,14 +33,23 @@ final class InventoryItemController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $this->denyAccessUnlessGranted(InventoryVoter::VIEW, $inventory);
+        // ACL: VIEW
+        $this->denyAccessUnlessGranted(
+            InventoryVoter::VIEW,
+            $inventory
+        );
 
         $dto = new InventoryItemCreateDTO();
         $form = $this->createForm(InventoryItemType::class, $dto);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->denyAccessUnlessGranted(InventoryVoter::CREATE_ITEM, $inventory);
+
+            // ACL: CREATE
+            $this->denyAccessUnlessGranted(
+                InventoryVoter::CREATE_ITEM,
+                $inventory
+            );
 
             $item = new InventoryItem(
                 $inventory,
@@ -52,13 +60,16 @@ final class InventoryItemController extends AbstractController
             $em->persist($item);
             $em->flush();
 
-            return $this->redirectToRoute('inventory_items_index', ['id' => $id]);
+            return $this->redirectToRoute(
+                'inventory_items_index',
+                ['id' => $id]
+            );
         }
 
         return $this->render('inventory_item/index.html.twig', [
             'inventory' => $inventory,
-            'items' => $items->findByInventory($inventory),
-            'form' => $form->createView(),
+            'items'     => $items->findByInventory($inventory),
+            'form'      => $form->createView(),
         ]);
     }
 
@@ -74,11 +85,15 @@ final class InventoryItemController extends AbstractController
         $inventory = $inventories->find($id);
         $item = $items->find($itemId);
 
-        if (!$inventory || !$item) {
+        if (!$inventory || !$item || $item->getInventory()->getId() !== $inventory->getId()) {
             throw $this->createNotFoundException();
         }
 
-        $this->denyAccessUnlessGranted(InventoryVoter::EDIT_ITEM, $inventory);
+        // ACL: EDIT
+        $this->denyAccessUnlessGranted(
+            InventoryVoter::EDIT_ITEM,
+            $inventory
+        );
 
         $dto = new InventoryItemEditDTO();
         $dto->customId = $item->getCustomId();
@@ -90,13 +105,16 @@ final class InventoryItemController extends AbstractController
             $item->setCustomId($dto->customId);
             $em->flush();
 
-            return $this->redirectToRoute('inventory_items_index', ['id' => $id]);
+            return $this->redirectToRoute(
+                'inventory_items_index',
+                ['id' => $id]
+            );
         }
 
         return $this->render('inventory_item/edit.html.twig', [
             'inventory' => $inventory,
-            'item' => $item,
-            'form' => $form->createView(),
+            'item'      => $item,
+            'form'      => $form->createView(),
         ]);
     }
 
@@ -104,6 +122,7 @@ final class InventoryItemController extends AbstractController
     public function delete(
         int $id,
         int $itemId,
+        Request $request,
         InventoryRepository $inventories,
         InventoryItemRepository $items,
         EntityManagerInterface $em
@@ -111,15 +130,30 @@ final class InventoryItemController extends AbstractController
         $inventory = $inventories->find($id);
         $item = $items->find($itemId);
 
-        if (!$inventory || !$item) {
+        if (!$inventory || !$item || $item->getInventory()->getId() !== $inventory->getId()) {
             throw $this->createNotFoundException();
         }
 
-        $this->denyAccessUnlessGranted(InventoryVoter::EDIT_ITEM, $inventory);
+        // ACL: DELETE = EDIT_ITEM
+        $this->denyAccessUnlessGranted(
+            InventoryVoter::EDIT_ITEM,
+            $inventory
+        );
+
+        // CSRF protection
+        if (!$this->isCsrfTokenValid(
+            'delete_item_' . $item->getId(),
+            $request->request->get('_token')
+        )) {
+            throw $this->createAccessDeniedException();
+        }
 
         $em->remove($item);
         $em->flush();
 
-        return $this->redirectToRoute('inventory_items_index', ['id' => $id]);
+        return $this->redirectToRoute(
+            'inventory_items_index',
+            ['id' => $id]
+        );
     }
 }
