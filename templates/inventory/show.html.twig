@@ -3,38 +3,44 @@
 {% block title %}Inventory {{ inventory.title }}{% endblock %}
 
 {% block body %}
-    <h1>{{ inventory.title }}</h1>
+    <h1 class="mb-3">{{ inventory.title }}</h1>
 
-    <p><strong>Category:</strong> {{ inventory.category }}</p>
-    <p><strong>Description:</strong> {{ inventory.description }}</p>
-    <p><strong>Owner:</strong> {{ inventory.owner.email }}</p>
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Category:</strong> {{ inventory.category }}</p>
+            <p><strong>Description:</strong> {{ inventory.description }}</p>
+            <p><strong>Owner:</strong> {{ inventory.owner.email }}</p>
+            <p>
+                <strong>Public:</strong>
+                {% if inventory.isPublic %}
+                    <span class="badge bg-success">Yes</span>
+                {% else %}
+                    <span class="badge bg-secondary">No</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="alert alert-info">
+                <strong>Items</strong><br>
+                CRUD + Autosave (implemented backend)
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="alert alert-warning">
+                <strong>Discussion</strong><br>
+                Polling + Likes
+            </div>
+        </div>
+    </div>
 
     <hr>
 
-    <h2>Access control</h2>
-
-    {% if app.user and app.user == inventory.owner %}
-        <p><strong>You are the owner of this inventory.</strong></p>
-    {% elseif app.user and app.user.isAdmin %}
-        <p><strong>You are an admin.</strong></p>
-    {% else %}
-        <p><strong>You are a regular user.</strong></p>
-    {% endif %}
-
-    <hr>
-
-    <h2>Sections</h2>
-    <ul>
-        <li>Items</li>
-        <li>Discussion</li>
-        <li>Likes</li>
-        <li>ACL (via Voters)</li>
-    </ul>
-
-    <hr>
-
-    <p style="color: gray;">
-        UI is intentionally minimal.
-        Access control is enforced in voters and controllers.
+    <p class="text-muted">
+        UI is intentionally minimal.<br>
+        Business logic, ACL, autosave, polling and likes are implemented on backend level.
     </p>
 {% endblock %}

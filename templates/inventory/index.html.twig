@@ -3,10 +3,10 @@
 {% block title %}Inventories{% endblock %}
 
 {% block body %}
-    <h1>Inventories</h1>
+    <h1 class="mb-4">Inventories</h1>
 
-    <table border="1" cellpadding="5" cellspacing="0">
-        <thead>
+    <table class="table table-striped table-bordered bg-white">
+        <thead class="table-dark">
         <tr>
             <th>ID</th>
             <th>Title</th>
@@ -19,7 +19,7 @@
             <tr>
                 <td>{{ inventory.id }}</td>
                 <td>
-                    <a href="{{ path('inventories_show', { id: inventory.id }) }}">
+                    <a href="{{ path('inventories_show', {id: inventory.id}) }}">
                         {{ inventory.title }}
                     </a>
                 </td>
@@ -28,7 +28,9 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="4">No inventories found</td>
+                <td colspan="4" class="text-center text-muted">
+                    No inventories found
+                </td>
             </tr>
         {% endfor %}
         </tbody>
