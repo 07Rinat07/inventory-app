@@ -1,132 +1,97 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Inventory {{ inventory.title }}{% endblock %}
+{% block title %}
+    {{ inventory.title }}
+{% endblock %}
 
 {% block body %}
-    {# ==========================
-       Заголовок + базовая инфа
-       ========================== #}
-    <h1 class="mb-3">{{ inventory.title }}</h1>
+    <h1 class="mb-4">
+        {{ inventory.title }}
+    </h1>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <p class="mb-1"><strong>Category:</strong> {{ inventory.category }}</p>
-            <p class="mb-1"><strong>Description:</strong> {{ inventory.description }}</p>
-            <p class="mb-1"><strong>Owner:</strong> {{ inventory.owner.email }}</p>
+    {# ───── ACL BADGES (серые) ───── #}
+    <div class="mb-3">
+        {% if is_granted('ROLE_ADMIN') %}
+            <span class="badge bg-dark">ADMIN</span>
+        {% endif %}
 
-            {# Если есть поле isPublic — покажем #}
-            {% if inventory.isPublic is defined %}
-                <p class="mb-0">
-                    <strong>Public:</strong>
-                    {% if inventory.isPublic %}
-                        <span class="badge bg-success">Yes</span>
-                    {% else %}
-                        <span class="badge bg-secondary">No</span>
-                    {% endif %}
-                </p>
-            {% endif %}
-        </div>
+        {% if inventory.owner == app.user %}
+            <span class="badge bg-secondary">OWNER</span>
+        {% endif %}
     </div>
 
-    {# =====================================
-       ACL UI-индикация (Owner/Admin/User)
-       ===================================== #}
-    {% set isAdmin = is_granted('ROLE_ADMIN') %}
-    {% set isOwner = app.user and inventory.owner and (inventory.owner.id == app.user.id) %}
+    <div class="mb-3">
+        {% if is_granted('INVENTORY_VIEW', inventory) %}
+            <span class="badge text-bg-light border">VIEW</span>
+        {% endif %}
 
-    {% if isAdmin %}
-        {% set actorLabel = 'ADMIN' %}
-        {% set actorClass = 'bg-danger' %}
-        {% set actorText = 'You are an admin. Full access is allowed by role.' %}
-    {% elseif isOwner %}
-        {% set actorLabel = 'OWNER' %}
-        {% set actorClass = 'bg-success' %}
-        {% set actorText = 'You are the owner of this inventory.' %}
-    {% else %}
-        {% set actorLabel = 'USER' %}
-        {% set actorClass = 'bg-secondary' %}
-        {% set actorText = 'You are a regular user. Access depends on ACL rules.' %}
-    {% endif %}
+        {% if is_granted('INVENTORY_EDIT', inventory) %}
+            <span class="badge text-bg-light border">EDIT</span>
+        {% endif %}
+
+        {% if is_granted('INVENTORY_CREATE_ITEM', inventory) %}
+            <span class="badge text-bg-light border">CREATE ITEM</span>
+        {% endif %}
+    </div>
 
     <div class="card mb-4">
-        <div class="card-header">
-            <strong>Access control</strong>
-        </div>
         <div class="card-body">
-            <p class="mb-2">
-                Current role:
-                <span class="badge {{ actorClass }}">{{ actorLabel }}</span>
-            </p>
-            <p class="text-muted mb-3">{{ actorText }}</p>
-
-            {# =========================================
-               Показать, что именно разрешено через Voter
-               (это самое “mentor-friendly” место)
-               ========================================= #}
-            <div class="d-flex flex-wrap gap-2">
-                {# VIEW #}
-                {% if is_granted('INVENTORY_VIEW', inventory) %}
-                    <span class="badge bg-success">VIEW: allowed</span>
+            <p><strong>Category:</strong> {{ inventory.category }}</p>
+            <p><strong>Description:</strong> {{ inventory.description }}</p>
+            <p><strong>Owner:</strong> {{ inventory.owner.email }}</p>
+            <p>
+                <strong>Public:</strong>
+                {% if inventory.isPublic %}
+                    <span class="badge bg-secondary">Yes</span>
                 {% else %}
-                    <span class="badge bg-danger">VIEW: denied</span>
+                    <span class="badge bg-light text-dark border">No</span>
                 {% endif %}
-
-                {# EDIT (если у тебя есть такое право в Voter) #}
-                {% if is_granted('INVENTORY_EDIT', inventory) %}
-                    <span class="badge bg-success">EDIT: allowed</span>
-                {% else %}
-                    <span class="badge bg-secondary">EDIT: not allowed</span>
-                {% endif %}
-
-                {# MANAGE_ACCESS (если есть) #}
-                {% if is_granted('INVENTORY_MANAGE_ACCESS', inventory) %}
-                    <span class="badge bg-success">MANAGE_ACCESS: allowed</span>
-                {% else %}
-                    <span class="badge bg-secondary">MANAGE_ACCESS: not allowed</span>
-                {% endif %}
-
-                {# CREATE_ITEM (если есть) #}
-                {% if is_granted('INVENTORY_CREATE_ITEM', inventory) %}
-                    <span class="badge bg-success">CREATE_ITEM: allowed</span>
-                {% else %}
-                    <span class="badge bg-secondary">CREATE_ITEM: not allowed</span>
-                {% endif %}
-            </div>
-
-            <hr class="my-3">
-
-            <p class="mb-0 text-muted">
-                UI is intentionally minimal. Access control is enforced in voters and controllers.
             </p>
         </div>
     </div>
 
-    {# ======================
-       Разделы (как навигация)
-       ====================== #}
-    <div class="row g-3">
+    {# ───── ACTION BUTTONS (серые) ───── #}
+    <div class="mb-4">
+        {% if is_granted('INVENTORY_CREATE_ITEM', inventory) %}
+            <a
+                    href="{{ path('inventory_items_index', { id: inventory.id }) }}"
+                    class="btn btn-outline-secondary btn-sm"
+            >
+                + Add item
+            </a>
+        {% endif %}
+
+        {% if is_granted('INVENTORY_EDIT', inventory) %}
+            <button
+                    class="btn btn-outline-dark btn-sm ms-2"
+                    disabled
+                    title="UI placeholder"
+            >
+                Edit Inventory
+            </button>
+        {% endif %}
+    </div>
+
+    <div class="row">
         <div class="col-md-6">
-            <div class="card border-info">
-                <div class="card-body">
-                    <h5 class="card-title">Items</h5>
-                    <p class="card-text">CRUD + Autosave (implemented backend)</p>
-                    {# можно добавить ссылку на items list если есть route inventory_items_index #}
-                    <a class="btn btn-sm btn-outline-info"
-                       href="{{ path('inventory_items_index', {id: inventory.id}) }}">
-                        Open items
-                    </a>
-                </div>
+            <div class="alert alert-light border">
+                <strong>Items</strong><br>
+                CRUD + Autosave (implemented backend)
             </div>
         </div>
 
         <div class="col-md-6">
-            <div class="card border-warning">
-                <div class="card-body">
-                    <h5 class="card-title">Discussion</h5>
-                    <p class="card-text">Polling + Likes</p>
-                    {# на данном этапе оставляем как info. Poll/POST routes проверяются backend-ом #}
-                </div>
+            <div class="alert alert-light border">
+                <strong>Discussion</strong><br>
+                Polling + Likes
             </div>
         </div>
     </div>
+
+    <hr>
+
+    <p class="text-muted">
+        UI is intentionally minimal.<br>
+        ACL, autosave, polling and likes are implemented at backend level and reflected here via permissions.
+    </p>
 {% endblock %}

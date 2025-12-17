@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit item{% endblock %}
+
+{% block body %}
+    <h1 class="mb-4">Edit item</h1>
+
+    <div class="card">
+        <div class="card-body">
+            {{ form_start(form) }}
+            {{ form_row(form.customId) }}
+
+            <button class="btn btn-outline-secondary btn-sm">
+                Save
+            </button>
+
+            <a
+                    href="{{ path('inventory_items_index', { id: inventory.id }) }}"
+                    class="btn btn-outline-dark btn-sm ms-2"
+            >
+                Cancel
+            </a>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\DTO\InventoryItemCreateDTO;
+use App\DTO\InventoryItemEditDTO;
 use App\Entity\Inventory;
+use App\Entity\InventoryItem;
 use App\Repository\InventoryItemRepository;
 use App\Repository\InventoryRepository;
 use App\Security\Voter\InventoryVoter;
-use App\Service\InventoryItemCreator;
+use Doctrine\ORM\EntityManagerInterface;
 use App\Form\InventoryItemType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,57 +26,100 @@ final class InventoryItemController extends AbstractController
         int $id,
         Request $request,
         InventoryRepository $inventories,
-        InventoryItemRepository $repository,
-        InventoryItemCreator $creator
+        InventoryItemRepository $items,
+        EntityManagerInterface $em
     ): Response {
-        /** @var Inventory $inventory */
         $inventory = $inventories->find($id);
-
         if (!$inventory) {
             throw $this->createNotFoundException();
         }
 
-        // ACL: просмотр
-        $this->denyAccessUnlessGranted(
-            InventoryVoter::VIEW,
-            $inventory
-        );
+        $this->denyAccessUnlessGranted(InventoryVoter::VIEW, $inventory);
 
-        // DTO
         $dto = new InventoryItemCreateDTO();
-
-        // Form
-        $form = $this->createForm(
-            InventoryItemType::class,
-            $dto
-        );
-
+        $form = $this->createForm(InventoryItemType::class, $dto);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $this->denyAccessUnlessGranted(InventoryVoter::CREATE_ITEM, $inventory);
 
-            // ACL: создание
-            $this->denyAccessUnlessGranted(
-                InventoryVoter::CREATE_ITEM,
-                $inventory
-            );
-
-            $creator->create(
+            $item = new InventoryItem(
                 $inventory,
                 $this->getUser(),
                 $dto->customId
             );
 
-            return $this->redirectToRoute(
-                'inventory_items_index',
-                ['id' => $inventory->getId()]
-            );
+            $em->persist($item);
+            $em->flush();
+
+            return $this->redirectToRoute('inventory_items_index', ['id' => $id]);
         }
 
         return $this->render('inventory_item/index.html.twig', [
             'inventory' => $inventory,
-            'items'     => $repository->findByInventory($inventory),
-            'form'      => $form->createView(),
+            'items' => $items->findByInventory($inventory),
+            'form' => $form->createView(),
         ]);
+    }
+
+    #[Route('/{itemId}/edit', name: 'inventory_item_edit', methods: ['GET', 'POST'])]
+    public function edit(
+        int $id,
+        int $itemId,
+        Request $request,
+        InventoryRepository $inventories,
+        InventoryItemRepository $items,
+        EntityManagerInterface $em
+    ): Response {
+        $inventory = $inventories->find($id);
+        $item = $items->find($itemId);
+
+        if (!$inventory || !$item) {
+            throw $this->createNotFoundException();
+        }
+
+        $this->denyAccessUnlessGranted(InventoryVoter::EDIT_ITEM, $inventory);
+
+        $dto = new InventoryItemEditDTO();
+        $dto->customId = $item->getCustomId();
+
+        $form = $this->createForm(InventoryItemType::class, $dto);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $item->setCustomId($dto->customId);
+            $em->flush();
+
+            return $this->redirectToRoute('inventory_items_index', ['id' => $id]);
+        }
+
+        return $this->render('inventory_item/edit.html.twig', [
+            'inventory' => $inventory,
+            'item' => $item,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/{itemId}/delete', name: 'inventory_item_delete', methods: ['POST'])]
+    public function delete(
+        int $id,
+        int $itemId,
+        InventoryRepository $inventories,
+        InventoryItemRepository $items,
+        EntityManagerInterface $em
+    ): Response {
+        $inventory = $inventories->find($id);
+        $item = $items->find($itemId);
+
+        if (!$inventory || !$item) {
+            throw $this->createNotFoundException();
+        }
+
+        $this->denyAccessUnlessGranted(InventoryVoter::EDIT_ITEM, $inventory);
+
+        $em->remove($item);
+        $em->flush();
+
+        return $this->redirectToRoute('inventory_items_index', ['id' => $id]);
     }
 }

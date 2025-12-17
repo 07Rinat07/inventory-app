@@ -21,9 +21,9 @@ final class InventoryItemCreator
         string $customId
     ): InventoryItem {
         $item = new InventoryItem(
-            inventory: $inventory,
-            createdBy: $user,
-            customId: $customId
+            $inventory,
+            $user,
+            $customId
         );
 
         $this->em->persist($item);
