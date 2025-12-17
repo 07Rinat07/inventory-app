@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Items — {{ inventory.title }}
+{% endblock %}
+
+{% block body %}
+    <h1>Items for inventory: {{ inventory.title }}</h1>
+
+    <p>
+        <a href="{{ path('inventories_show', {id: inventory.id}) }}">
+            ← Back to inventory
+        </a>
+    </p>
+
+    <hr>
+
+    {# ===== ACL INFO ===== #}
+    <p>
+        <strong>Your permissions:</strong>
+        {% if is_granted('INVENTORY_EDIT', inventory) %}
+            <span style="color: green;">EDIT</span>
+        {% else %}
+            <span style="color: red;">READ-ONLY</span>
+        {% endif %}
+    </p>
+
+    <hr>
+
+    {# ===== CREATE ITEM FORM ===== #}
+    {% if is_granted('INVENTORY_CREATE_ITEM', inventory) %}
+        <h2>Create new item</h2>
+
+        {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button type="submit">Create</button>
+        {{ form_end(form) }}
+
+        <hr>
+    {% endif %}
+
+    {# ===== ITEMS LIST ===== #}
+    <h2>Items</h2>
+
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Custom ID</th>
+            <th>Created by</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in items %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.customId }}</td>
+                <td>{{ item.createdBy.email }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">No items yet</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

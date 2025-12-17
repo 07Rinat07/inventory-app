@@ -7,36 +7,53 @@ namespace App\Controller;
 use App\DTO\InventoryItemCreateDTO;
 use App\Entity\Inventory;
 use App\Repository\InventoryItemRepository;
+use App\Repository\InventoryRepository;
 use App\Security\Voter\InventoryVoter;
-use App\Service\InventoryItem\InventoryItemCreator;
+use App\Service\InventoryItemCreator;
+use App\Form\InventoryItemType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/inventories/{id}/items')]
 final class InventoryItemController extends AbstractController
 {
     #[Route('', name: 'inventory_items_index', methods: ['GET', 'POST'])]
     public function index(
-        Inventory $inventory,
+        int $id,
         Request $request,
+        InventoryRepository $inventories,
         InventoryItemRepository $repository,
         InventoryItemCreator $creator
     ): Response {
+        /** @var Inventory $inventory */
+        $inventory = $inventories->find($id);
+
+        if (!$inventory) {
+            throw $this->createNotFoundException();
+        }
+
+        // ACL: просмотр
         $this->denyAccessUnlessGranted(
             InventoryVoter::VIEW,
             $inventory
         );
 
-        // Create item form
+        // DTO
+        $dto = new InventoryItemCreateDTO();
+
+        // Form
         $form = $this->createForm(
-            \App\Form\InventoryItemType::class,
-            new InventoryItemCreateDTO()
+            InventoryItemType::class,
+            $dto
         );
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
+            // ACL: создание
             $this->denyAccessUnlessGranted(
                 InventoryVoter::CREATE_ITEM,
                 $inventory
@@ -45,44 +62,19 @@ final class InventoryItemController extends AbstractController
             $creator->create(
                 $inventory,
                 $this->getUser(),
-                $inventory->getCustomIdTemplate() // предполагается
+                $dto->customId
             );
 
-            return $this->redirectToRoute('inventory_items_index', [
-                'id' => $inventory->getId(),
-            ]);
+            return $this->redirectToRoute(
+                'inventory_items_index',
+                ['id' => $inventory->getId()]
+            );
         }
 
         return $this->render('inventory_item/index.html.twig', [
             'inventory' => $inventory,
-            'items' => $repository->findByInventory($inventory),
-            'form' => $form->createView(),
-        ]);
-    }
-
-    #[Route('/bulk-delete', name: 'inventory_items_bulk_delete', methods: ['POST'])]
-    public function bulkDelete(
-        Inventory $inventory,
-        Request $request,
-        InventoryItemRepository $repository
-    ): Response {
-        $this->denyAccessUnlessGranted(
-            InventoryVoter::EDIT_ITEM,
-            $inventory
-        );
-
-        $ids = $request->request->all('ids');
-
-        if (!is_array($ids)) {
-            return $this->redirectToRoute('inventory_items_index', [
-                'id' => $inventory->getId(),
-            ]);
-        }
-
-        $repository->deleteByIds($inventory, $ids);
-
-        return $this->redirectToRoute('inventory_items_index', [
-            'id' => $inventory->getId(),
+            'items'     => $repository->findByInventory($inventory),
+            'form'      => $form->createView(),
         ]);
     }
 }

@@ -76,7 +76,9 @@ class InventoryItem
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    // ===== Getters =====
+    // ========================
+    // Getters / setters
+    // ========================
 
     public function getId(): ?int
     {
@@ -88,6 +90,11 @@ class InventoryItem
         return $this->inventory;
     }
 
+    public function getCreatedBy(): User
+    {
+        return $this->createdBy;
+    }
+
     public function getCustomId(): string
     {
         return $this->customId;
@@ -96,5 +103,20 @@ class InventoryItem
     public function setCustomId(string $customId): void
     {
         $this->customId = $customId;
+    }
+
+    public function getVersion(): int
+    {
+        return $this->version;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 }
