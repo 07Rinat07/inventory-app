@@ -29,50 +29,64 @@ final class InventoryVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return $subject instanceof Inventory
-            && in_array($attribute, [
-                self::VIEW,
-                self::EDIT,
-                self::MANAGE_ACCESS,
-                self::CREATE_ITEM,
-                self::EDIT_ITEM,
-                self::DELETE_ITEM,
-                self::DISCUSSION_WRITE,
-            ], true);
+        if (!$subject instanceof Inventory) {
+            return false;
+        }
+
+        return in_array($attribute, [
+            self::VIEW,
+            self::EDIT,
+            self::MANAGE_ACCESS,
+            self::CREATE_ITEM,
+            self::EDIT_ITEM,
+            self::DELETE_ITEM,
+            self::DISCUSSION_WRITE,
+        ], true);
     }
 
-    protected function voteOnAttribute(
-        string $attribute,
-        mixed $subject,
-        TokenInterface $token
-    ): bool {
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
+    {
         /** @var Inventory $inventory */
         $inventory = $subject;
+
         $user = $token->getUser();
 
         // ─────────────────────────────
-        // Гость
+        // GUEST (не аутентифицирован)
         // ─────────────────────────────
+        // Гость может видеть ТОЛЬКО публичный inventory.
         if (!$user instanceof User) {
             return $attribute === self::VIEW && $inventory->isPublic();
         }
 
         // ─────────────────────────────
-        // ADMIN — всё можно
+        // ADMIN — полный доступ
         // ─────────────────────────────
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             return true;
         }
 
         // ─────────────────────────────
-        // OWNER — всё можно
+        // OWNER — полный доступ
         // ─────────────────────────────
-        if ($inventory->getOwner()->getId() === $user->getId()) {
+        // Важно: сравниваем сначала объект, затем id (если id уже установлен).
+        // Это защищает от ситуации, когда id=null (unit tests / unsaved entities),
+        // и "null === null" ошибочно дает владельца любому пользователю.
+        $owner = $inventory->getOwner();
+
+        if ($owner === $user) {
+            return true;
+        }
+
+        $ownerId = $owner?->getId();
+        $userId  = $user->getId();
+
+        if ($ownerId !== null && $userId !== null && $ownerId === $userId) {
             return true;
         }
 
         // ─────────────────────────────
-        // PUBLIC даёт ТОЛЬКО VIEW
+        // PUBLIC даёт ТОЛЬКО VIEW (для не-владельца)
         // ─────────────────────────────
         if ($inventory->isPublic() && $attribute === self::VIEW) {
             return true;
@@ -81,6 +95,8 @@ final class InventoryVoter extends Voter
         // ─────────────────────────────
         // ACL (InventoryAccess)
         // ─────────────────────────────
+        // READ  -> только VIEW
+        // WRITE -> VIEW + CRUD items + DISCUSSION_WRITE
         $access = $this->accessRepository->findOneBy([
             'inventory' => $inventory,
             'user'      => $user,
