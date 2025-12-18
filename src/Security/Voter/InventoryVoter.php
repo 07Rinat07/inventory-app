@@ -111,6 +111,7 @@ final class InventoryVoter extends Voter
 
             'WRITE' => in_array($attribute, [
                 self::VIEW,
+                self::EDIT,              // ← ВАЖНО: добавили
                 self::CREATE_ITEM,
                 self::EDIT_ITEM,
                 self::DELETE_ITEM,
@@ -119,5 +120,6 @@ final class InventoryVoter extends Voter
 
             default => false,
         };
+
     }
 }
