@@ -23,8 +23,12 @@ final class AppFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         /**
-         * ADMIN
+         * =========================
+         * USERS
+         * =========================
          */
+
+        // ADMIN
         $admin = new User();
         $admin->setEmail('admin@test.com');
         $admin->setUsername('admin');
@@ -35,9 +39,7 @@ final class AppFixtures extends Fixture
         );
         $manager->persist($admin);
 
-        /**
-         * USER
-         */
+        // USER
         $user = new User();
         $user->setEmail('user@test.com');
         $user->setUsername('user');
@@ -49,22 +51,47 @@ final class AppFixtures extends Fixture
         $manager->persist($user);
 
         /**
-         * INVENTORY (принадлежит ADMIN)
+         * =========================
+         * INVENTORIES
+         * =========================
          */
-        $inventory = new Inventory(
+
+        /**
+         * PUBLIC inventory (ADMIN)
+         * — доступен всем
+         * — используется в базовых тестах
+         */
+        $publicInventory = new Inventory(
             $admin,
             'Demo Inventory',
             'Inventory created from fixtures',
             'Demo'
         );
-        $inventory->setPublic(true);
-        $manager->persist($inventory);
+        $publicInventory->setPublic(true);
+        $manager->persist($publicInventory);
 
         /**
-         * FIELD
+         * PRIVATE inventory (ADMIN)
+         * — НЕ доступен другим пользователям
+         * — КРИТИЧЕСКИ ВАЖНО для InventoryOwnerVoterTest
          */
+        $privateInventory = new Inventory(
+            $admin,
+            'Private Inventory',
+            'Private inventory for ACL tests',
+            'Private'
+        );
+        $privateInventory->setPublic(false);
+        $manager->persist($privateInventory);
+
+        /**
+         * =========================
+         * FIELDS
+         * =========================
+         */
+
         $field = new InventoryField(
-            $inventory,
+            $publicInventory,
             'TEXT',
             'Serial number',
             1
@@ -72,33 +99,42 @@ final class AppFixtures extends Fixture
         $manager->persist($field);
 
         /**
-         * ITEM
+         * =========================
+         * ITEMS
+         * =========================
          */
+
         $item = new InventoryItem(
-            $inventory,
+            $publicInventory,
             $admin,
             'ITEM-001'
         );
         $manager->persist($item);
 
         /**
-         * DISCUSSION POST (от USER)
+         * =========================
+         * DISCUSSION
+         * =========================
          */
+
         $post = new DiscussionPost(
-            $inventory,
+            $publicInventory,
             $user,
             'Hello! I am a regular user'
         );
         $manager->persist($post);
 
-        /**
-         * LIKE (USER лайкает пост)
-         */
         $like = new DiscussionPostLike(
             $user,
             $post
         );
         $manager->persist($like);
+
+        /**
+         * =========================
+         * FLUSH
+         * =========================
+         */
 
         $manager->flush();
     }
