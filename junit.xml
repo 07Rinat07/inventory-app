@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="/home/dev07/PhpstormProjects/inventory-app/phpunit.xml" tests="28" assertions="65" errors="0" failures="0" skipped="0" time="1.018336">
+    <testsuite name="Unit" tests="18" assertions="38" errors="0" failures="0" skipped="0" time="0.070874">
+      <testsuite name="App\Tests\Unit\Security\InventoryDiscussionGuestVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryDiscussionGuestVoterTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.006376">
+        <testcase name="testGuestCannotWriteDiscussion" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryDiscussionGuestVoterTest.php" line="16" class="App\Tests\Unit\Security\InventoryDiscussionGuestVoterTest" classname="App.Tests.Unit.Security.InventoryDiscussionGuestVoterTest" assertions="1" time="0.006376"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Security\InventoryDiscussionWriteAccessVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryDiscussionWriteAccessVoterTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000350">
+        <testcase name="testUserWithWriteAccessCanWriteDiscussion" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryDiscussionWriteAccessVoterTest.php" line="17" class="App\Tests\Unit\Security\InventoryDiscussionWriteAccessVoterTest" classname="App.Tests.Unit.Security.InventoryDiscussionWriteAccessVoterTest" assertions="1" time="0.000350"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Security\InventoryEditForeignUserVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryEditForeignUserVoterTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000136">
+        <testcase name="testUserCannotEditForeignInventory" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryEditForeignUserVoterTest.php" line="16" class="App\Tests\Unit\Security\InventoryEditForeignUserVoterTest" classname="App.Tests.Unit.Security.InventoryEditForeignUserVoterTest" assertions="1" time="0.000136"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Security\InventoryEditOwnerVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryEditOwnerVoterTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000073">
+        <testcase name="testOwnerCanEditInventory" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryEditOwnerVoterTest.php" line="16" class="App\Tests\Unit\Security\InventoryEditOwnerVoterTest" classname="App.Tests.Unit.Security.InventoryEditOwnerVoterTest" assertions="1" time="0.000073"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Security\InventoryDiscussionReadAccessVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryDiscussionReadAccessVoterTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000105">
+        <testcase name="testUserWithReadAccessCannotWriteDiscussion" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryDiscussionReadAccessVoterTest.php" line="17" class="App\Tests\Unit\Security\InventoryDiscussionReadAccessVoterTest" classname="App.Tests.Unit.Security.InventoryDiscussionReadAccessVoterTest" assertions="1" time="0.000105"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Security\Voter\InventoryVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/Voter/InventoryVoterTest.php" tests="6" assertions="24" errors="0" failures="0" skipped="0" time="0.000792">
+        <testcase name="testUserCanViewPublicInventory" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/Voter/InventoryVoterTest.php" line="111" class="App\Tests\Unit\Security\Voter\InventoryVoterTest" classname="App.Tests.Unit.Security.Voter.InventoryVoterTest" assertions="1" time="0.000211"/>
+        <testcase name="testReadAccessAllowsOnlyView" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/Voter/InventoryVoterTest.php" line="141" class="App\Tests\Unit\Security\Voter\InventoryVoterTest" classname="App.Tests.Unit.Security.Voter.InventoryVoterTest" assertions="2" time="0.000172"/>
+        <testcase name="testAdminHasFullAccess" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/Voter/InventoryVoterTest.php" line="76" class="App\Tests\Unit\Security\Voter\InventoryVoterTest" classname="App.Tests.Unit.Security.Voter.InventoryVoterTest" assertions="7" time="0.000109"/>
+        <testcase name="testOwnerHasFullAccess" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/Voter/InventoryVoterTest.php" line="94" class="App\Tests\Unit\Security\Voter\InventoryVoterTest" classname="App.Tests.Unit.Security.Voter.InventoryVoterTest" assertions="7" time="0.000093"/>
+        <testcase name="testWriteAccessAllowsItemManagementAndDiscussion" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/Voter/InventoryVoterTest.php" line="168" class="App\Tests\Unit\Security\Voter\InventoryVoterTest" classname="App.Tests.Unit.Security.Voter.InventoryVoterTest" assertions="6" time="0.000119"/>
+        <testcase name="testUserCannotEditPublicInventory" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/Voter/InventoryVoterTest.php" line="124" class="App\Tests\Unit\Security\Voter\InventoryVoterTest" classname="App.Tests.Unit.Security.Voter.InventoryVoterTest" assertions="1" time="0.000089"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Security\InventoryDiscussionOwnerVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryDiscussionOwnerVoterTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000067">
+        <testcase name="testOwnerCanWriteDiscussion" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryDiscussionOwnerVoterTest.php" line="15" class="App\Tests\Unit\Security\InventoryDiscussionOwnerVoterTest" classname="App.Tests.Unit.Security.InventoryDiscussionOwnerVoterTest" assertions="1" time="0.000067"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Security\InventoryManageAccessAdminVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryManageAccessAdminVoterTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000063">
+        <testcase name="testAdminCanManageAccess" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryManageAccessAdminVoterTest.php" line="16" class="App\Tests\Unit\Security\InventoryManageAccessAdminVoterTest" classname="App.Tests.Unit.Security.InventoryManageAccessAdminVoterTest" assertions="1" time="0.000063"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Security\InventoryManageAccessOwnerVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryManageAccessOwnerVoterTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000061">
+        <testcase name="testOwnerCanManageAccess" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryManageAccessOwnerVoterTest.php" line="15" class="App\Tests\Unit\Security\InventoryManageAccessOwnerVoterTest" classname="App.Tests.Unit.Security.InventoryManageAccessOwnerVoterTest" assertions="1" time="0.000061"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Security\InventoryDiscussionAdminVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryDiscussionAdminVoterTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000087">
+        <testcase name="testAdminCanWriteDiscussion" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryDiscussionAdminVoterTest.php" line="15" class="App\Tests\Unit\Security\InventoryDiscussionAdminVoterTest" classname="App.Tests.Unit.Security.InventoryDiscussionAdminVoterTest" assertions="1" time="0.000087"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Inventory\InventoryItemCreatorOptimisticLockTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Inventory/InventoryItemCreatorOptimisticLockTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.062236">
+        <testcase name="testOptimisticLockPreventsConcurrentItemModification" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Inventory/InventoryItemCreatorOptimisticLockTest.php" line="20" class="App\Tests\Unit\Inventory\InventoryItemCreatorOptimisticLockTest" classname="App.Tests.Unit.Inventory.InventoryItemCreatorOptimisticLockTest" assertions="1" time="0.062236"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Security\InventoryEditAdminVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryEditAdminVoterTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000119">
+        <testcase name="testAdminCanEditAnyInventory" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryEditAdminVoterTest.php" line="16" class="App\Tests\Unit\Security\InventoryEditAdminVoterTest" classname="App.Tests.Unit.Security.InventoryEditAdminVoterTest" assertions="1" time="0.000119"/>
+      </testsuite>
+      <testsuite name="App\Tests\Unit\Security\InventoryEditWriteAccessVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryEditWriteAccessVoterTest.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.000408">
+        <testcase name="testUserWithWriteAccessCanEditInventory" file="/home/dev07/PhpstormProjects/inventory-app/tests/Unit/Security/InventoryEditWriteAccessVoterTest.php" line="17" class="App\Tests\Unit\Security\InventoryEditWriteAccessVoterTest" classname="App.Tests.Unit.Security.InventoryEditWriteAccessVoterTest" assertions="3" time="0.000408"/>
+      </testsuite>
+    </testsuite>
+    <testsuite name="Functional" tests="10" assertions="27" errors="0" failures="0" skipped="0" time="0.947462">
+      <testsuite name="App\Tests\Functional\Security\AnonymousAccessTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/AnonymousAccessTest.php" tests="1" assertions="2" errors="0" failures="0" skipped="0" time="0.020897">
+        <testcase name="testAnonymousUserIsRedirectedToLogin" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/AnonymousAccessTest.php" line="11" class="App\Tests\Functional\Security\AnonymousAccessTest" classname="App.Tests.Functional.Security.AnonymousAccessTest" assertions="2" time="0.020897"/>
+      </testsuite>
+      <testsuite name="App\Tests\Functional\Security\AccessControlTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/AccessControlTest.php" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.004127">
+        <testcase name="testGuestCannotAccessInventories" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/AccessControlTest.php" line="13" class="App\Tests\Functional\Security\AccessControlTest" classname="App.Tests.Functional.Security.AccessControlTest" assertions="3" time="0.004127"/>
+      </testsuite>
+      <testsuite name="App\Tests\Functional\Security\LoginSuccessTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/LoginSuccessTest.php" tests="1" assertions="4" errors="0" failures="0" skipped="0" time="0.392437">
+        <testcase name="testUserCanLoginWithValidCredentials" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/LoginSuccessTest.php" line="9" class="App\Tests\Functional\Security\LoginSuccessTest" classname="App.Tests.Functional.Security.LoginSuccessTest" assertions="4" time="0.392437"/>
+      </testsuite>
+      <testsuite name="App\Tests\Functional\Discussion\DiscussionGuestTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Discussion/DiscussionGuestTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.003664">
+        <testcase name="testGuestCannotWriteDiscussion" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Discussion/DiscussionGuestTest.php" line="11" class="App\Tests\Functional\Discussion\DiscussionGuestTest" classname="App.Tests.Functional.Discussion.DiscussionGuestTest" assertions="1" time="0.003664"/>
+      </testsuite>
+      <testsuite name="App\Tests\Functional\Inventory\InventoryOwnerVoterTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Inventory/InventoryOwnerVoterTest.php" tests="1" assertions="2" errors="0" failures="0" skipped="0" time="0.091283">
+        <testcase name="testUserCannotViewForeignInventory" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Inventory/InventoryOwnerVoterTest.php" line="14" class="App\Tests\Functional\Inventory\InventoryOwnerVoterTest" classname="App.Tests.Functional.Inventory.InventoryOwnerVoterTest" assertions="2" time="0.091283"/>
+      </testsuite>
+      <testsuite name="App\Tests\Functional\Security\AccessControlAuthenticatedTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/AccessControlAuthenticatedTest.php" tests="1" assertions="2" errors="0" failures="0" skipped="0" time="0.016917">
+        <testcase name="testAuthenticatedUserCanAccessInventories" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/AccessControlAuthenticatedTest.php" line="14" class="App\Tests\Functional\Security\AccessControlAuthenticatedTest" classname="App.Tests.Functional.Security.AccessControlAuthenticatedTest" assertions="2" time="0.016917"/>
+      </testsuite>
+      <testsuite name="App\Tests\Functional\Security\LoginFailureTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/LoginFailureTest.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.363335">
+        <testcase name="testUserCannotLoginWithInvalidCredentials" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/LoginFailureTest.php" line="9" class="App\Tests\Functional\Security\LoginFailureTest" classname="App.Tests.Functional.Security.LoginFailureTest" assertions="5" time="0.363335"/>
+      </testsuite>
+      <testsuite name="App\Tests\Functional\Security\LogoutTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/LogoutTest.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.035163">
+        <testcase name="testUserIsLoggedOutAndCannotAccessProtectedPage" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/LogoutTest.php" line="9" class="App\Tests\Functional\Security\LogoutTest" classname="App.Tests.Functional.Security.LogoutTest" assertions="5" time="0.035163"/>
+      </testsuite>
+      <testsuite name="App\Tests\Functional\Security\RoleAccessTest" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/RoleAccessTest.php" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="0.019639">
+        <testcase name="testUserCanAccessInventories" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/RoleAccessTest.php" line="13" class="App\Tests\Functional\Security\RoleAccessTest" classname="App.Tests.Functional.Security.RoleAccessTest" assertions="1" time="0.015913"/>
+        <testcase name="testGuestCannotAccessInventories" file="/home/dev07/PhpstormProjects/inventory-app/tests/Functional/Security/RoleAccessTest.php" line="31" class="App\Tests\Functional\Security\RoleAccessTest" classname="App.Tests.Functional.Security.RoleAccessTest" assertions="2" time="0.003726"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>
