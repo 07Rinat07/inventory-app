@@ -12,6 +12,7 @@ use App\Repository\InventoryFieldRepository;
 use App\Service\CustomId\CustomIdGenerator;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\OptimisticLockException;
 
 /**
  * Единственная точка создания InventoryItem и его значений.
@@ -88,7 +89,7 @@ final class InventoryItemCreator
 
             $this->em->persist($item);
 
-            // Загружаем все поля инвентаря ОДНИМ запросом
+            // Загружаем все поля инвентаря одним запросом
             $fields = $this->fieldRepository->findBy([
                 'inventory' => $inventory,
             ]);
@@ -100,7 +101,7 @@ final class InventoryItemCreator
 
             foreach ($fieldValues as $fieldId => $value) {
                 if (!isset($fieldsById[$fieldId])) {
-                    continue; // поле удалено или не относится к inventory
+                    continue;
                 }
 
                 $field = $fieldsById[$fieldId];
@@ -124,6 +125,13 @@ final class InventoryItemCreator
             $this->em->commit();
 
             return $item;
+
+        } catch (OptimisticLockException $e) {
+            $this->safeRollback();
+            throw new \DomainException(
+                'The item was modified by another user. Please reload the page.',
+                previous: $e
+            );
         } catch (UniqueConstraintViolationException $e) {
             $this->safeRollback();
             throw new \DomainException('Custom ID already exists.', previous: $e);
@@ -159,6 +167,7 @@ final class InventoryItemCreator
                 $this->em->rollback();
             }
         } catch (\Throwable) {
+            // intentionally ignored
         }
     }
 }
