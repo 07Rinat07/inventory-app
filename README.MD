@@ -291,9 +291,9 @@ UI не влияет на безопасность — все проверки �
 php -v
 composer -V
 psql --version
+
 2. Установка проекта
 2.1 Клонирование репозитория
-
 git clone <REPOSITORY_URL>
 cd inventory-app
 2.2 Установка зависимостей
@@ -302,30 +302,26 @@ composer install
 3. Настройка базы данных
 Проект использует PostgreSQL + Doctrine ORM.
 Для тестов используется отдельная test-база, что соответствует best practice и требованиям.
-
 3.1 Создание пользователя и баз данных (один раз)
 В PostgreSQL:
 
 CREATE USER inventory_user WITH PASSWORD 'strongpassword';
 CREATE DATABASE inventory_app OWNER inventory_user;
 CREATE DATABASE inventory_app_test OWNER inventory_user;
+
 3.2 Настройка окружения
 .env
-dotenv
-
 DATABASE_URL="postgresql://inventory_user:strongpassword@127.0.0.1:5432/inventory_app?serverVersion=15&charset=utf8"
-.env.test
-dotenv
 
+.env.test
 DATABASE_URL="postgresql://inventory_user:strongpassword@127.0.0.1:5432/inventory_app_test?serverVersion=15&charset=utf8"
 APP_ENV=test
 APP_DEBUG=0
+
 4. Подготовка базы данных
 4.1 Применение миграций (dev / prod)
-
 php bin/console doctrine:migrations:migrate
 4.2 Применение миграций для тестовой БД
-
 php bin/console doctrine:migrations:migrate --env=test
 4.3 Загрузка фикстур (только test)
 
@@ -343,18 +339,15 @@ discussion + likes
 
 5. Запуск тестов
 5.1 🔹 Запуск всех тестов одной командой
-
 APP_DEBUG=0 ./vendor/bin/phpunit
-5.2 🔹 Только Unit-тесты
 
+5.2 🔹 Только Unit-тесты
 APP_DEBUG=0 ./vendor/bin/phpunit tests/Unit --testdox
 
 5.3 🔹 Только Functional-тесты
-
 APP_DEBUG=0 ./vendor/bin/phpunit tests/Functional --testdox
 
 5.4 🔹 Запуск конкретного теста
-
 APP_DEBUG=0 ./vendor/bin/phpunit tests/Unit/Security/InventoryEditOwnerVoterTest.php --testdox
 
 6. Описание тестов =>
@@ -363,7 +356,6 @@ Unit-тесты проверяют чистую бизнес-логику, бе�
 
 🔹 InventoryVoter (ACL)
 Проверяемые правила:
-
 Admin — полный доступ
 Owner — полный доступ
 Guest — только просмотр public inventory
@@ -372,28 +364,21 @@ WRITE — items + discussion
 MANAGE_ACCESS — только owner / admin
 
 Это ключевая бизнес-логика проекта.
-
 🔹 InventoryEditOwnerVoterTest
 Проверяет, что владелец inventory может редактировать его.
-
 🔹 InventoryEditForeignUserVoterTest
 Проверяет, что обычный пользователь не может редактировать чужой inventory.
-
 🔹 InventoryEditAdminVoterTest
 Проверяет, что admin может редактировать любой inventory.
-
 🔹 InventoryEditWriteAccessVoterTest
 Проверяет, что пользователь с WRITE-доступом может редактировать inventory.
-
 🔹 InventoryManageAccessOwnerVoterTest
 Проверяет, что только owner может управлять ACL.
-
 🔹 InventoryManageAccessAdminVoterTest
 Проверяет, что admin может управлять ACL любого inventory.
-
 🔹 InventoryDiscussion*VoterTest
-Проверяется доступ к discussion:
 
+Проверяется доступ к discussion:
 Owner — может писать
 Admin — может писать
 WRITE — может писать
@@ -402,18 +387,14 @@ Guest — не может писать
 
 6.2 Functional-тесты (User Scenarios)
 Functional-тесты проверяют реальное поведение приложения через HTTP.
-
 🔹 Login / Logout
 Пользователь может войти
 Пользователь выходит
 После logout доступ запрещён
-
 🔹 AccessControlTest
 Guest не может зайти в защищённые страницы.
-
 🔹 InventoryOwnerVoterTest
 User не может открыть private inventory другого пользователя (403).
-
 🔹 DiscussionGuestTest
 Guest не может писать сообщения в discussion через HTTP.
 
@@ -421,27 +402,20 @@ Functional-тесты подтверждают корректную работу
 ```
 
 ### Start and CHECK ALL Tests
-
 -   APP_ENV=test php bin/console cache:clear  
     && APP_ENV=test php bin/console doctrine:schema:validate  
     && APP_ENV=test ./vendor/bin/phpunit
 
 ### Unit tests
-
 Located in `tests/Unit`. They validate isolated business logic and security rules without HTTP layer. Run:
 
 -   php bin/phpunit tests/Unit
 
 ### Functional tests
-
 #### (Functional-тест проверяет поведение приложения через HTTP: маршруты, контроллеры и систему безопасности, как при реальном использовании).
-
 Located in `tests/Functional`. They test application behavior via real HTTP requests, including routing, controllers and security.
 
 Run:
-
 -   php bin/phpunit tests/Functional
-
 ### Run all tests
-
 -   php bin/phpunit
