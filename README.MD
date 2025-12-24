@@ -4,9 +4,7 @@
 
 ---
 
-<div align="center">
-  <img src="https://media.giphy.com/media/dWesBcTLavkZuG35MI/giphy.gif" width="600" height="300"/>
-</div>
+![](https://media.giphy.com/media/dWesBcTLavkZuG35MI/giphy.gif)
 
 ---
 
@@ -402,20 +400,205 @@ Functional-тесты подтверждают корректную работу
 ```
 
 ### Start and CHECK ALL Tests
+
 -   APP_ENV=test php bin/console cache:clear  
     && APP_ENV=test php bin/console doctrine:schema:validate  
     && APP_ENV=test ./vendor/bin/phpunit
 
 ### Unit tests
+
 Located in `tests/Unit`. They validate isolated business logic and security rules without HTTP layer. Run:
 
 -   php bin/phpunit tests/Unit
 
 ### Functional tests
+
 #### (Functional-тест проверяет поведение приложения через HTTP: маршруты, контроллеры и систему безопасности, как при реальном использовании).
+
 Located in `tests/Functional`. They test application behavior via real HTTP requests, including routing, controllers and security.
 
 Run:
+
 -   php bin/phpunit tests/Functional
+
 ### Run all tests
+
 -   php bin/phpunit
+
+### for WINDOWS 10-11
+
+## 📦 1. Install and Start PostgreSQL 16
+
+### OSPanel module setup
+
+-   Enable **PostgreSQL-16** module in OSPanel.
+-   Start the module and check logs (`logs/postgresql.log`) if it fails.
+
+### Manual start (fallback)
+
+```cmd
+cd C:OSPanelmodulesdatabasesPostgreSQL-16bin
+pg_ctl -D "C:OSPanelmodulesdatabasesPostgreSQL-16data" start
+
+Verify listening port
+
+* netstat -ano | findstr 5432
+
+Expected: LISTENING on 127.0.0.1:5432 or 127.0.1.x:5432.
+
+⚙️ 2. Configure PostgreSQL Network Access
+
+postgresql.conf
+
+listen_addresses = '*'
+port = 5432
+
+pg_hba.conf
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+local   all             all                                     md5
+host    all             all             127.0.0.1/32            md5
+host    all             all             ::1/128                 md5
+
+Restart PostgreSQL after changes.
+
+🐘 3. Enable PHP PostgreSQL Extensions (PHP 8.2)
+
+Edit php.ini for CLI (used by bin/console):
+
+Path example:
+
+C:OSPanelmodulesphpPHP-8.2php.ini
+
+Enable:
+
+extension=pdo_pgsql
+extension=pgsql
+
+Restart OSPanel and verify:
+
+php -m | findstr pgsql
+
+Expected: pdo_pgsql, pgsql.
+
+🗄️ 4. Create Database and User, Grant Permissions
+
+Connect as superuser:
+
+cd C:OSPanelmodulesdatabasesPostgreSQL-16bin
+psql -U postgres -h 127.0.0.1 -p 5432
+
+SQL commands:
+
+CREATE USER inventory_test WITH PASSWORD 'strongpassword';
+CREATE DATABASE inventory_app_test OWNER inventory_test;
+
+GRANT USAGE ON SCHEMA public TO inventory_test;
+GRANT CREATE ON SCHEMA public TO inventory_test;
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO inventory_test;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO inventory_test;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO inventory_test;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO inventory_test;
+
+🔗 5. Symfony and Doctrine Configuration
+
+.env.test
+
+APP_ENV=test
+APP_DEBUG=0
+DATABASE_URL="pgsql://inventory_test:strongpassword@127.0.0.1:5432/inventory_app_test?serverVersion=16&charset=utf8"
+
+config/packages/doctrine.yaml
+
+doctrine:
+  dbal:
+    driver: pdo_pgsql
+    url: '%env(resolve:DATABASE_URL)%'
+    profiling_collect_backtrace: '%kernel.debug%'
+    use_savepoints: true
+
+  orm:
+    auto_generate_proxy_classes: true
+    enable_lazy_ghost_objects: true
+    report_fields_where_declared: true
+    validate_xml_mapping: true
+    naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+    auto_mapping: true
+    mappings:
+      App:
+        type: attribute
+        is_bundle: false
+        dir: '%kernel.project_dir%/src/Entity'
+        prefix: 'AppEntity'
+        alias: App
+
+when@test:
+  doctrine:
+    dbal:
+      dbname_suffix: ''
+
+🧪 6. PHPUnit Configuration
+
+phpunit.xml.dist
+
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true">
+    <php>
+        <env name="KERNEL_CLASS" value="AppKernel"/>
+        <env name="APP_ENV" value="test"/>
+        <env name="APP_DEBUG" value="0"/>
+    </php>
+</phpunit>
+
+▶️ 7. Run Migrations and Tests (Windows)
+
+Set environment variables
+
+CMD:
+
+set APP_ENV=test
+php bin/console cache:clear
+
+PowerShell:
+
+$env:APP_ENV="test"
+php bin/console cache:clear
+
+Database setup
+
+php bin/console doctrine:database:create --env=test
+php bin/console doctrine:migrations:migrate --env=test
+
+Run tests
+
+php bin/phpunit
+php bin/phpunit tests/Unit
+
+🛠️ 8. Troubleshooting
+
+could not find driver → Enable pdo_pgsql and pgsql in php.ini.
+
+connection refused → PostgreSQL not running or listening on different IP. Fix listen_addresses and pg_hba.conf.
+
+permission denied for schema public → Grant schema rights to inventory_test.
+
+You must set the KERNEL_CLASS → Add <env name="KERNEL_CLASS" value="AppKernel"/> in phpunit.xml.dist.
+
+✅ 9. Final Checklist
+
+PostgreSQL running and listening on port 5432.
+
+PHP extensions pdo_pgsql and pgsql enabled.
+
+Database inventory_app_test created, user inventory_test has full rights.
+
+Doctrine configured with pdo_pgsql driver.
+
+PHPUnit configured with KERNEL_CLASS and test env.
+
+Commands run successfully with APP_ENV=test.
+```
